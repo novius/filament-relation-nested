@@ -1,4 +1,4 @@
-# Laravel Filament Menu manager
+# Laravel Filament Relation Nested
 
 [![Novius CI](https://github.com/novius/filament-relation-nested/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/novius/filament-relation-nested/actions/workflows/main.yml)
 [![Packagist Release](https://img.shields.io/packagist/v/novius/filament-relation-nested.svg?maxAge=1800&style=flat-square)](https://packagist.org/packages/novius/filament-relation-nested)
@@ -6,7 +6,7 @@
 
 ## Introduction
 
-This [Laravel Filament](https://filamentphp.com/) package allows you to manage menus in your Laravel Filament admin panel.
+This [Laravel Filament](https://filamentphp.com/) package allows you to manage relation that uses the [kalnoy/nestedset](https://packagist.org/packages/kalnoy/nestedset) in your Laravel Filament admin panel.
 
 ## Requirements
 
@@ -26,176 +26,113 @@ Publish Filament assets
 php artisan filament:assets
 ```
 
-Then, launch migrations 
-
-```sh
-php artisan migrate
-```
-
-In your `AdminFilamentPanelProvider` add the `MenuManagerPlugin` :
-
-```php
-use Novius\FilamentRelationNested\Filament\MenuManagerPlugin;
-
-class AdminFilamentPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            // ...
-            ->plugins([
-                MenuManagerPlugin::make(),
-            ])
-            // ...
-            ;
-    }
-}
-```
-
-### Configuration
-
-Some options that you can override are available.
-
-```sh
-php artisan vendor:publish --provider="Novius\FilamentRelationNested\LaravelFilamentMenuServiceProvider" --tag="config"
-```
-
 ## Usage
 
-### Blade directive
+### Relation Manager
 
-You can display menu with : 
-
-```bladehtml
-<x-filament-relation-nested::menu 
-    menu-slug="slug-of-menu" 
-    locale="fr" {{-- optional, will use the current locale by default --}}   
-/>
-```
-
-### Write your owned template
-
-#### Template class
+First create a RelationManager for your filament resource that have a relation to a model that uses nestedset package: 
 
 ```php
-namespace App\Menus\Templates;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Novius\FilamentRelationNested\Filament\Resources\RelationManagers\TreeRelationManager;
+use Novius\FilamentRelationNested\Filament\Tables\Actions\FixTreeAction;
 
-use Novius\FilamentRelationNested\Concerns\IsMenuTemplate;
-use Novius\FilamentRelationNested\Contracts\MenuTemplate;
-
-class MyMenuTemplate implements MenuTemplate // Must implement MenuTemplate interface
+class MenuItemsTreeRelationManager extends TreeRelationManager
 {
-    use IsMenuTemplate; // This trait will defined required method with default implementation
+    // Define the relationship name
+    protected static string $relationship = 'items';
 
-    public function key(): string
+    public function table(Table $table): Table
     {
-        return 'my-template';
-    }
-
-    public function name(): string
-    {
-        return 'My template';
-    }
-
-    public function hasTitle(): bool
-    {
-        return true; // Define if the menu need a title displaying in front. False by default if you don't implement this method
-    }
-
-    public function fields(): array
-    {
-        return [
-            \Filament\Forms\Components\DatePicker::make('date'), // You can add additionals fields on items
-        ];
-    }
-
-    public function casts(): array
-    {
-        return [
-            'date' => 'date:Y-m-d', // If you add additionals fields on items, you can define their casts
-        ];
-    }
-
-    public function view(): string
-    {
-        return 'menus.my-template'; // Define the view used to display this the menu
-    }
-
-    public function viewItem(): string
-    {
-        return 'menus.my-template-item'; // Define the view used to display an item of the menu
+        return $table
+            ->columns([
+                TextColumn::make('title'),
+            ])
+            ->pluralModelLabel('Menu items')
+            ->recordTitleAttribute('title')
+            ->headerActions([
+                CreateAction::make(),
+                    
+                // Add the FixTreeAction if you want an action that fix the nestedset tree 
+                FixTreeAction::make(),
+            ])
+            ->actions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ]);
     }
 }
 ```
-#### Template views
 
-First the view to display the menu :
+Then add it to your resource
 
-```bladehtml
-@php
-    use Novius\FilamentRelationNested\Models\Menu;
-    /** @var Menu $menu */
-@endphp
-<nav>
-    @if ($menu->template->hasTitle())
-    <div>
-        {{ $menu->title ?? $menu->name }}
-    </div>
-    @endif
-    <ul>
-        @foreach($items as $item)
-            {!! $menu->template->renderItem($menu, $item) !!}
-        @endforeach
-    </ul>
-</nav>
-
+```php
+class MenuResource extends Resource
+{
+    public static function getRelations(): array
+    {
+        return [
+            // ...
+            MenuItemsTreeRelationManager::class,
+        ];
+    }
+}
 ```
 
-The the view to display an item of the menu
+### TreeColumn
 
-```bladehtml
-@php
-    use Novius\FilamentRelationNested\Enums\LinkType;use Novius\FilamentRelationNested\Models\Menu;
-    use Novius\FilamentRelationNested\Models\MenuItem;
+You can use this column in a filament table on a model that uses the nestedset package. 
+This will display a column which, when sorting is this column, will give an idea of the tree. 
 
-    /** @var Menu $menu */
-    /** @var MenuItem $item */
-@endphp
-<li>
-    @if ($item->link_type === LinkType::html)
-        {!! $item->html !!}
-    @else
-        <a href="{{ $item->href() }}" 
-           @class([
-                $item->htmlClasses,
-                'active' => $menu->template->isActiveItem($item),
-           ]) 
-            {{ $item->target_blank ? 'target="_blank"' : '' }}
-        >
-            {{ $item->title }}
-            
-            {{-- If you add additionals fields on items, you can access it like this --}}
-            {{ $item->extras->date?->format('Y-m-d') ?? '' }} 
-        </a>
-    @endif
+```php
+use CodeWithDennis\FilamentSelectTree\SelectTree;
+use Exception;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Resources\Resource;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Novius\FilamentRelationNested\Filament\Tables\Columns\TreeColumn;
+use Novius\LaravelFilamentMenu\Enums\LinkType;
+use Novius\LaravelFilamentMenu\Facades\MenuManager;
+use Novius\LaravelFilamentMenu\Filament\Resources\MenuItemResource\Pages\CreateMenuItem;
+use Novius\LaravelFilamentMenu\Filament\Resources\MenuItemResource\Pages\EditMenuItem;
+use Novius\LaravelFilamentMenu\Filament\Resources\MenuItemResource\RelationManagers\MenuItemsRelationManager;
+use Novius\LaravelFilamentMenu\Models\Menu;
+use Novius\LaravelFilamentMenu\Models\MenuItem;
+use Novius\LaravelLinkable\Filament\Forms\Components\Linkable;
+use Wiebenieuwenhuis\FilamentCodeEditor\Components\CodeEditor;
 
-    @if ($item->children->isNotEmpty())
-        <ul 
-            @class([
-                'open' =>  $menu->template->containtActiveItem($item),
-            ])
-        >
-            @foreach($item->children as $item)
-                {!! $menu->template->renderItem($menu, $item) !!}
-            @endforeach
-        </ul>
-    @endif
-</li>
+class MenuItemResource extends Resource
+{
+    public static function table(Table $table): Table
+    {
+        return $table
+            // This will disable the pagination when the table is sorted by the _lft field
+            ->paginated(fn (Table $table) => ! empty($table->getSortColumn()) && $table->getSortColumn() !== '_lft')
+            // This will default sort the table on the _lft field
+            ->defaultSort('_lft')
+            ->columns([
+                TreeColumn::make('_lft'),
+
+                // ....
+            ]);
+    }
+}
 ```
-
-### Manage internal link possibilities
-
-Laravel Filament Menu uses [Laravel Linkable](https://github.com/novius/laravel-linkable) to manage linkable routes and models. Please read the documentation.
 
 ## Lint
 

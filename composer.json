@@ -1,0 +1,79 @@
+{
+    "name": "novius/filament-relation-nested",
+    "description": "A filament package to manage relationships that use the NestedSet model.",
+    "keywords": [
+        "laravel",
+        "filament",
+        "nested",
+        "nestedset",
+        "tree",
+        "relation"
+    ],
+    "license": "AGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Novius Agency",
+            "email": "team-developpeurs@novius.com",
+            "homepage": "https://www.novius.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^3.3",
+        "kalnoy/nestedset": "^6.0.6",
+        "laravel/framework": "^11.0 | ^12.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^2.0 | ^3.0",
+        "laravel/pint": "^1.7",
+        "orchestra/testbench": "^10.3",
+        "roave/security-advisories": "dev-latest"
+    },
+    "autoload": {
+        "psr-4": {
+            "Novius\\FilamentRelationNested\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Novius\\FilamentRelationNested\\FilamentRelationNestedServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "cs-fix": [
+            "./vendor/bin/pint -v"
+        ],
+        "lint": [
+            "@composer cs-fix -- --test"
+        ],
+        "phpstan": [
+            "vendor/bin/phpstan analyse --memory-limit 1G"
+        ],
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

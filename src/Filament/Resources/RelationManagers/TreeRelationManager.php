@@ -67,7 +67,7 @@ class TreeRelationManager extends RelationManager
         $relation = $this->getRelationship();
         $model = $relation->getModel();
         /** @var Model&NodeTrait $model */
-        $query = $model::query()->defaultOrder();
+        $query = $this->getFilteredTableQuery()->defaultOrder();
 
         return $query->get()->toTree();
     }

@@ -64,9 +64,7 @@ class TreeRelationManager extends RelationManager
 
     public function getTableRecords(): Collection|Paginator|CursorPaginator
     {
-        $relation = $this->getRelationship();
-        $model = $relation->getModel();
-        /** @var Model&NodeTrait $model */
+        /** @phpstan-ignore method.notFound */
         $query = $this->getFilteredTableQuery()->defaultOrder();
 
         return $query->get()->toTree();

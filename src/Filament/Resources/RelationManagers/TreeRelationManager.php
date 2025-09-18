@@ -2,9 +2,9 @@
 
 namespace Novius\FilamentRelationNested\Filament\Resources\RelationManagers;
 
+use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\Paginator;

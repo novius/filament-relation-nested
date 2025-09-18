@@ -2,8 +2,8 @@
 
 namespace Novius\FilamentRelationNested\Filament\Tables\Actions;
 
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Kalnoy\Nestedset\QueryBuilder;
 use Throwable;

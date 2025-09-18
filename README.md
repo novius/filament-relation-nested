@@ -11,7 +11,7 @@ This [Laravel Filament](https://filamentphp.com/) package allows you to manage r
 ## Requirements
 
 * PHP >= 8.2
-* Laravel Filament >= 3.3
+* Laravel Filament >= 4
 * Laravel Framework >= 11.0 
 
 ## Installation

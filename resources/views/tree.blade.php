@@ -25,6 +25,8 @@
     $description = $getDescription();
     $isLoaded = $isLoaded();
     $hasHeader = $header || $heading || $description || $headerActions;
+    $headingTag = $getHeadingTag();
+    $secondLevelHeadingTag = $heading ? $getHeadingTag(1) : $headingTag;
     $records = $isLoaded ? $getRecords() : null;
 @endphp
 

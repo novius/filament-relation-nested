@@ -43,7 +43,12 @@
         'animate-pulse' => $records === null,
     ])
 >
-    <x-filament-tables::container>
+    <div
+        @class([
+            'fi-ta-ctn',
+            'fi-ta-ctn-with-header' => $hasHeader,
+        ])
+    >
         <div
             @if (! $hasHeader) x-cloak @endif
         x-bind:hidden="! @js($hasHeader)"
@@ -149,8 +154,7 @@
                 @endif
             </div>
         </div>
-
-    </x-filament-tables::container>
+    </div>
 
     <x-filament-actions::modals/>
 </div>

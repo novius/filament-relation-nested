@@ -5,7 +5,6 @@
     use Filament\Support\Facades\FilamentView;
     use Filament\Tables\Columns\Column;
     use Filament\Tables\Columns\ColumnGroup;
-    use Filament\Tables\Enums\ActionsPosition;
     use Filament\Tables\Enums\FiltersLayout;
     use Filament\Tables\Enums\RecordCheckboxPosition;
     use Filament\Tables\View\TablesRenderHook;
@@ -56,12 +55,38 @@
             @if ($header)
                 {{ $header }}
             @elseif (($heading || $description || $headerActions))
-                <x-filament-tables::header
-                    :actions="$headerActions"
-                    :actions-position="$headerActionsPosition"
-                    :description="$description"
-                    :heading="$heading"
-                />
+                <div
+                    @class([
+                        'fi-ta-header',
+                        'fi-ta-header-adaptive-actions-position' => $headerActions && ($headerActionsPosition === HeaderActionsPosition::Adaptive),
+                    ])
+                >
+                    @if ($heading || $description)
+                        <div>
+                            @if ($heading)
+                                <{{ $headingTag }}
+                                    class="fi-ta-header-heading"
+                                >
+                                {{ $heading }}
+                        </{{ $headingTag }}>
+                    @endif
+
+                    @if ($description)
+                        <p class="fi-ta-header-description">
+                            {{ $description }}
+                        </p>
+                    @endif
+                </div>
+            @endif
+
+            @if ($headerActions)
+                <div class="fi-ta-actions fi-align-start fi-wrapped">
+                    @foreach ($headerActions as $action)
+                        {{ $action }}
+                    @endforeach
+                </div>
+            @endif
+        </div>
             @endif
 
             {{ FilamentView::renderHook(TablesRenderHook::HEADER_AFTER, scopes: static::class) }}

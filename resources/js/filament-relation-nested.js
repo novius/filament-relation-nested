@@ -11,7 +11,6 @@ export default function filamentRelationNested() {
       if (this.$refs.tree) {
         const e = this.$refs.tree.querySelectorAll(".filament-relation-manager");
         for (let t = 0; t < e.length; t++) {
-          console.log('sortable', e[t]);
           Sortable.create(e[t], {
             group: "tree-nested",
             animation: 150,

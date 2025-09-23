@@ -11,8 +11,11 @@
     use Filament\Tables\View\TablesRenderHook;
     use Illuminate\Support\Str;
 
+    $defaultRecordActions = $getRecordActions();
+    $recordActionsAlignment = $getRecordActionsAlignment();
+    $recordActionsPosition = $getRecordActionsPosition();
+    $contentGrid = $getContentGrid();
     $actions = $getActions();
-    $columns = $getVisibleColumns();
     $header = $getHeader();
     $headerActions = array_filter(
         $getHeaderActions(),
@@ -43,7 +46,7 @@
     x-data="filamentRelationNested()"
     @class([
         'fi-ta',
-        'animate-pulse' => $records === null,
+        'frn:animate-pulse' => $records === null,
     ])
 >
     <div
@@ -56,7 +59,7 @@
             @if (! $hasHeader) x-cloak @endif
         x-bind:hidden="! @js($hasHeader)"
             x-show="@js($hasHeader)"
-            class="fi-ta-header-ctn divide-y divide-gray-200 dark:divide-white/10"
+            class="fi-ta-header-ctn frn:divide-y frn:divide-gray-200 frn:dark:divide-white/10"
         >
             {{ FilamentView::renderHook(TablesRenderHook::HEADER_BEFORE, scopes: static::class) }}
 
@@ -102,13 +105,13 @@
 
         <div
             @class([
-                'fi-ta-content relative divide-y divide-gray-200 overflow-x-auto dark:divide-white/10 dark:border-t-white/10',
-                '!border-t-0' => ! $hasHeader,
+                'fi-ta-content frn:relative frn:divide-y frn:divide-gray-200 frn:overflow-x-auto frn:dark:divide-white/10 frn:dark:border-t-white/10',
+                '!frn:border-t-0' => ! $hasHeader,
             ])
         >
-            <div x-ref="tree" class="pb-4">
+            <div x-ref="tree" class="frn:pb-4">
                 @if (($records !== null) && count($records))
-                    <nav class="text-base lg:text-sm pe-4 pt-4">
+                    <nav class="frn:text-base frn:lg:text-sm frn:pe-4 frn:pt-4">
                         <ul class="filament-relation-manager" data-id>
                             @foreach($records as $record)
                                 @include('filament-relation-nested::tree-row', ['record' => $record])
@@ -116,7 +119,7 @@
                         </ul>
                     </nav>
                 @elseif ($records === null)
-                    <div class="flex h-32 items-center justify-center">
+                    <div class="frn:flex frn:h-32 frn:items-center frn:justify-center">
                         <x-filament::loading-indicator class="h-8 w-8"/>
                     </div>
                 @elseif ($emptyState = $getEmptyState())

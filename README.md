@@ -33,9 +33,9 @@ php artisan filament:assets
 First create a RelationManager for your filament resource that have a relation to a model that uses nestedset package:
 
 ```php
-use Filament\Tables\Actions\CreateAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Novius\FilamentRelationNested\Filament\Actions\FixTreeAction;

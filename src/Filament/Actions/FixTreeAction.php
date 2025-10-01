@@ -1,6 +1,6 @@
 <?php
 
-namespace Novius\FilamentRelationNested\Filament\Tables\Actions;
+namespace Novius\FilamentRelationNested\Filament\Actions;
 
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;

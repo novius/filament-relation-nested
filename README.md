@@ -30,7 +30,7 @@ php artisan filament:assets
 
 ### Relation Manager
 
-First create a RelationManager for your filament resource that have a relation to a model that uses nestedset package: 
+First create a RelationManager for your filament resource that have a relation to a model that uses nestedset package:
 
 ```php
 use Filament\Tables\Actions\CreateAction;
@@ -38,9 +38,8 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
+use Novius\FilamentRelationNested\Filament\Actions\FixTreeAction;
 use Novius\FilamentRelationNested\Filament\Resources\RelationManagers\TreeRelationManager;
-use Novius\FilamentRelationNested\Filament\Tables\Actions\FixTreeAction;
 
 class MenuItemsTreeRelationManager extends TreeRelationManager
 {

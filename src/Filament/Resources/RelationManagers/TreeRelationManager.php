@@ -2,6 +2,7 @@
 
 namespace Novius\FilamentRelationNested\Filament\Resources\RelationManagers;
 
+use Exception;
 use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -14,7 +15,6 @@ use Illuminate\Support\Arr;
 use Kalnoy\Nestedset\NodeTrait;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Session;
-use LogicException;
 use Novius\FilamentRelationNested\Actions\MoveItem;
 use Novius\FilamentRelationNested\Filament\Trees\TreeTable;
 use RuntimeException;
@@ -76,6 +76,7 @@ class TreeRelationManager extends RelationManager
         if ($parent === '') {
             $parent = null;
         }
+        $parentId = $parent === null ? null : (int) $parent;
 
         $relation = $this->getRelationship();
         $modelClass = $relation->getModel();
@@ -85,13 +86,15 @@ class TreeRelationManager extends RelationManager
         $node = $query->findOrFail($id);
 
         try {
+            $this->moveTreeItemValidation($node, $parentId, $from, $to);
+
             app(MoveItem::class)(
                 node: $node,
-                parent: $parent === null ? null : (int) $parent,
+                parent: $parentId,
                 from: $from,
                 to: $to,
             );
-        } catch (LogicException $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->danger()
                 ->title($e->getMessage())
@@ -113,4 +116,6 @@ class TreeRelationManager extends RelationManager
 
     #[On('filament-relation-nested-updated')]
     public function refreshNode(): void {}
+
+    protected function moveTreeItemValidation(Model $node, ?int $parent, int $from, int $to): void {}
 }

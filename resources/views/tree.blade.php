@@ -15,7 +15,6 @@
     $recordActionsAlignment = $getRecordActionsAlignment();
     $recordActionsPosition = $getRecordActionsPosition();
     $contentGrid = $getContentGrid();
-    $actions = $getActions();
     $header = $getHeader();
     $headerActions = array_filter(
         $getHeaderActions(),

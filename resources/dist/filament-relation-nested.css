@@ -192,9 +192,6 @@
   .frn\:grow {
     flex-grow: 1;
   }
-  .frn\:animate-pulse {
-    animation: var(--frn-animate-pulse);
-  }
   .frn\:cursor-move {
     cursor: move;
   }

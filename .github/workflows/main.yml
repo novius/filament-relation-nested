@@ -33,7 +33,6 @@ jobs:
       matrix:
         php-versions: ['8.2', '8.3', '8.4', '8.5']
         laravel: [ 11.*, 12.* ]
-        filament: [ 4.*, 5.* ]
         include:
           - laravel: 12.*
             carbon: 3.*

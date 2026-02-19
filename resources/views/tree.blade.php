@@ -58,7 +58,16 @@
             'fi-ta-ctn-with-header' => $hasHeader,
         ])
     >
-        <div class="fi-ta-main">
+        <div
+            class="fi-ta-main"
+            @if (FilamentView::hasSpaMode())
+                x-load="visible"
+            @else
+                x-load
+            @endif
+            x-load-src="{{ FilamentAsset::getAlpineComponentSrc('filament-relation-nested', 'filament-relation-nested') }}"
+            x-data="filamentRelationNested()"
+        >
             <div
                 @if (! $hasHeader) x-cloak @endif
             x-bind:hidden="! @js($hasHeader)"

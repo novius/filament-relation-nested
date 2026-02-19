@@ -25,6 +25,7 @@
     $group = $getGrouping();
     $groups = $getGroups();
     $description = $getDescription();
+    $areGroupsCollapsedByDefault = $areGroupsCollapsedByDefault();
     $isLoaded = $isLoaded();
     $hasHeader = $header || $heading || $description || $headerActions;
     $headingTag = $getHeadingTag();
@@ -33,20 +34,23 @@
 @endphp
 
 <div
-    @if (! $isLoaded)
-        wire:init="loadTable"
-    @endif
-    @if (FilamentView::hasSpaMode())
-        x-load="visible"
-    @else
-        x-load
-    @endif
-    x-load-src="{{ FilamentAsset::getAlpineComponentSrc('filament-relation-nested', 'filament-relation-nested') }}"
-    x-data="filamentRelationNested()"
-    @class([
-        'fi-ta',
-        'frn:animate-pulse' => $records === null,
-    ])
+        @if (! $isLoaded)
+            wire:init="loadTable"
+        @endif
+        x-data="filamentTable({
+                areGroupsCollapsedByDefault: @js($areGroupsCollapsedByDefault),
+                canTrackDeselectedRecords: @js($canTrackDeselectedRecords()),
+                currentSelectionLivewireProperty: @js($getCurrentSelectionLivewireProperty()),
+                maxSelectableRecords: @js($maxSelectableRecords),
+                selectsCurrentPageOnly: @js($selectsCurrentPageOnly),
+                $wire,
+            })"
+        {{
+            $getExtraAttributeBag()->class([
+                'fi-ta',
+                'fi-loading' => $records === null,
+            ])
+        }}
 >
     <div
         @class([
@@ -54,109 +58,111 @@
             'fi-ta-ctn-with-header' => $hasHeader,
         ])
     >
-        <div
-            @if (! $hasHeader) x-cloak @endif
-        x-bind:hidden="! @js($hasHeader)"
-            x-show="@js($hasHeader)"
-            class="fi-ta-header-ctn frn:divide-y frn:divide-gray-200 frn:dark:divide-white/10"
-        >
-            {{ FilamentView::renderHook(TablesRenderHook::HEADER_BEFORE, scopes: static::class) }}
+        <div class="fi-ta-main">
+            <div
+                @if (! $hasHeader) x-cloak @endif
+            x-bind:hidden="! @js($hasHeader)"
+                x-show="@js($hasHeader)"
+                class="fi-ta-header-ctn frn:divide-y frn:divide-gray-200 frn:dark:divide-white/10"
+            >
+                {{ FilamentView::renderHook(TablesRenderHook::HEADER_BEFORE, scopes: static::class) }}
 
-            @if ($header)
-                {{ $header }}
-            @elseif (($heading || $description || $headerActions))
-                <div
-                    @class([
-                        'fi-ta-header',
-                        'fi-ta-header-adaptive-actions-position' => $headerActions && ($headerActionsPosition === HeaderActionsPosition::Adaptive),
-                    ])
-                >
-                    @if ($heading || $description)
-                        <div>
-                            @if ($heading)
-                                <{{ $headingTag }}
-                                    class="fi-ta-header-heading"
-                                >
-                                {{ $heading }}
-                        </{{ $headingTag }}>
-                    @endif
+                @if ($header)
+                    {{ $header }}
+                @elseif (($heading || $description || $headerActions))
+                    <div
+                        @class([
+                            'fi-ta-header',
+                            'fi-ta-header-adaptive-actions-position' => $headerActions && ($headerActionsPosition === HeaderActionsPosition::Adaptive),
+                        ])
+                    >
+                        @if ($heading || $description)
+                            <div>
+                                @if ($heading)
+                                    <{{ $headingTag }}
+                                        class="fi-ta-header-heading"
+                                    >
+                                        {{ $heading }}
+                                    </{{ $headingTag }}>
+                                @endif
 
-                    @if ($description)
-                        <p class="fi-ta-header-description">
-                            {{ $description }}
-                        </p>
-                    @endif
-                </div>
-            @endif
-
-            @if ($headerActions)
-                <div class="fi-ta-actions fi-align-start fi-wrapped">
-                    @foreach ($headerActions as $action)
-                        {{ $action }}
-                    @endforeach
-                </div>
-            @endif
-        </div>
-            @endif
-
-            {{ FilamentView::renderHook(TablesRenderHook::HEADER_AFTER, scopes: static::class) }}
-        </div>
-
-        <div
-            @class([
-                'fi-ta-content frn:relative frn:divide-y frn:divide-gray-200 frn:overflow-x-auto frn:dark:divide-white/10 frn:dark:border-t-white/10',
-                '!frn:border-t-0' => ! $hasHeader,
-            ])
-        >
-            <div x-ref="tree" class="frn:pb-4">
-                @if (($records !== null) && count($records))
-                    <nav class="frn:text-base frn:lg:text-sm frn:pe-4 frn:pt-4">
-                        <ul class="filament-relation-manager" data-id>
-                            @foreach($records as $record)
-                                @include('filament-relation-nested::tree-row', ['record' => $record])
-                            @endforeach
-                        </ul>
-                    </nav>
-                @elseif ($records === null)
-                    <div class="frn:flex frn:h-32 frn:items-center frn:justify-center">
-                        <x-filament::loading-indicator class="h-8 w-8"/>
-                    </div>
-                @elseif ($emptyState = $getEmptyState())
-                    {{ $emptyState }}
-                @else
-                    <div class="fi-ta-empty-state">
-                        <div class="fi-ta-empty-state-content">
-                            <div class="fi-ta-empty-state-icon-bg">
-                                {{ \Filament\Support\generate_icon_html($getEmptyStateIcon(), size: \Filament\Support\Enums\IconSize::Large) }}
+                                @if ($description)
+                                    <p class="fi-ta-header-description">
+                                        {{ $description }}
+                                    </p>
+                                @endif
                             </div>
+                        @endif
 
-                            <{{ $secondLevelHeadingTag }}
-                                class="fi-ta-empty-state-heading"
-                            >
-                              {{ $getEmptyStateHeading() }}
-                            </{{ $secondLevelHeadingTag }}>
-
-                            @if (filled($emptyStateDescription = $getEmptyStateDescription()))
-                                <p class="fi-ta-empty-state-description">
-                                    {{ $emptyStateDescription }}
-                                </p>
-                            @endif
-
-                            @if ($emptyStateActions = array_filter(
-                                     $getEmptyStateActions(),
-                                     fn (\Filament\Actions\Action | \Filament\Actions\ActionGroup $action): bool => $action->isVisible(),
-                                 ))
-                                <div
-                                    class="fi-ta-actions fi-align-center fi-wrapped"
-                                >
-                                    @foreach ($emptyStateActions as $action)
-                                        {{ $action }}
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
+                        @if ($headerActions)
+                            <div class="fi-ta-actions fi-align-start fi-wrapped">
+                                @foreach ($headerActions as $action)
+                                    {{ $action }}
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 @endif
+
+                {{ FilamentView::renderHook(TablesRenderHook::HEADER_AFTER, scopes: static::class) }}
+            </div>
+
+            <div
+                @class([
+                    'fi-ta-content-ctn frn:relative frn:divide-y frn:divide-gray-200 frn:overflow-x-auto frn:dark:divide-white/10 frn:dark:border-t-white/10',
+                    '!frn:border-t-0' => ! $hasHeader,
+                ])
+            >
+                <div x-ref="tree" class="frn:pb-4">
+                    @if (($records !== null) && count($records))
+                        <nav class="frn:text-base frn:lg:text-sm frn:pe-4 frn:pt-4">
+                            <ul class="filament-relation-manager" data-id>
+                                @foreach($records as $record)
+                                    @include('filament-relation-nested::tree-row', ['record' => $record])
+                                @endforeach
+                            </ul>
+                        </nav>
+                    @elseif ($records === null)
+                        <div class="frn:flex frn:h-32 frn:items-center frn:justify-center">
+                            <x-filament::loading-indicator class="h-8 w-8"/>
+                        </div>
+                    @elseif ($emptyState = $getEmptyState())
+                        {{ $emptyState }}
+                    @else
+                        <div class="fi-ta-empty-state">
+                            <div class="fi-ta-empty-state-content">
+                                <div class="fi-ta-empty-state-icon-bg">
+                                    {{ \Filament\Support\generate_icon_html($getEmptyStateIcon(), size: \Filament\Support\Enums\IconSize::Large) }}
+                                </div>
+
+                                <{{ $secondLevelHeadingTag }}
+                                    class="fi-ta-empty-state-heading"
+                                >
+                                  {{ $getEmptyStateHeading() }}
+                                </{{ $secondLevelHeadingTag }}>
+
+                                @if (filled($emptyStateDescription = $getEmptyStateDescription()))
+                                    <p class="fi-ta-empty-state-description">
+                                        {{ $emptyStateDescription }}
+                                    </p>
+                                @endif
+
+                                @if ($emptyStateActions = array_filter(
+                                         $getEmptyStateActions(),
+                                         fn (\Filament\Actions\Action | \Filament\Actions\ActionGroup $action): bool => $action->isVisible(),
+                                     ))
+                                    <div
+                                        class="fi-ta-actions fi-align-center fi-wrapped"
+                                    >
+                                        @foreach ($emptyStateActions as $action)
+                                            {{ $action }}
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

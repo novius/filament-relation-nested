@@ -37,12 +37,15 @@ jobs:
           - laravel: 13.*
             carbon: 3.*
             testbench: 11.*
+            nestedset: 7.*
           - laravel: 12.*
             carbon: 3.*
             testbench: 10.*
+            nestedset: 6.*
           - laravel: 11.*
             carbon: 2.*
             testbench: 9.*
+            nestedset: 6.*
         exclude:
           - laravel: 13.*
             php-versions: '8.2'
@@ -59,7 +62,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "nesbot/carbon:${{ matrix.carbon }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer require "laravel/framework:${{ matrix.laravel }}" "nesbot/carbon:${{ matrix.carbon }}" "orchestra/testbench:${{ matrix.testbench }}"  "kalnoy/nestedset:${{ matrix.nestedset }}" --no-interaction --no-update
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: PhPStan

@@ -32,14 +32,20 @@ jobs:
       fail-fast: false
       matrix:
         php-versions: ['8.2', '8.3', '8.4', '8.5']
-        laravel: [ 11.*, 12.* ]
+        laravel: [ 11.*, 12.*, 13.* ]
         include:
+          - laravel: 13.*
+            carbon: 3.*
+            testbench: 11.*
           - laravel: 12.*
             carbon: 3.*
             testbench: 10.*
           - laravel: 11.*
             carbon: 2.*
             testbench: 9.*
+        exclude:
+          - laravel: 13.*
+            php-versions: '8.2'
 
     name: phpstan - P${{ matrix.php-versions }} - L${{ matrix.laravel }}
 

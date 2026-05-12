@@ -19,6 +19,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
@@ -26,10 +32,9 @@ jobs:
         run: composer run-script lint
 
   phpstan:
-    runs-on: ubuntu-latest
 
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         php-versions: ['8.2', '8.3', '8.4', '8.5']
         laravel: [ 11.*, 12.*, 13.* ]
@@ -60,10 +65,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php-versions }}-laravel-${{ matrix.laravel }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php-versions }}-laravel-${{ matrix.laravel }}-composer-
+            ${{ runner.os }}-php-${{ matrix.php-versions }}-
+
       - name: Install Dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "nesbot/carbon:${{ matrix.carbon }}" "orchestra/testbench:${{ matrix.testbench }}"  "kalnoy/nestedset:${{ matrix.nestedset }}" --no-interaction --no-update
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-      - name: PhPStan
+      - name: PHPStan Static Analysis
         run: composer run-script phpstan
